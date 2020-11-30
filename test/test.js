@@ -60,5 +60,46 @@ describe('deepClone', () => {
             assert(a.xxx !== a2.xxx)
             assert(a(1, 2) === a2(1, 2))
         })
+        it('有环也可以复制', () => {
+            const a = { name: 'freddy' }
+            a.self = a
+            const a2 = deepClone(a)
+            assert(a !== a2)
+            assert(a.name === a2.name)
+            assert(a.self !== a2.self)
+        })
+        xit('不会爆栈', () => {
+            const a = { child: null }
+            let b = a
+            for (let i = 0; i < 20000; i++) {
+                b.child = {
+                    child: null
+                }
+                b = b.child
+            }
+            const a2 = deepClone(a)
+            assert(a !== a2)
+            assert(a.child !== a2.child)
+        })
+        it('可以复制正则表达', () => {
+            const a = /hi\d+/gi
+            const a2 = deepClone(a)
+            assert(a.source === a2.source)
+            assert(a.flags === a2.flags)
+            assert(a !== a2)
+        })
+        it('可以复制日期', () => {
+            const a = new Date()
+            a.xxx = { yyy: { zzz: 111 } }
+            const a2 = deepClone(a)
+            assert(a !== a2)
+            assert(a.getTime() === a2.getTime())
+        })
+        it('自动跳过原型属性', () => {
+            const a = Object.create({ name: 'a' })
+            const a2 = deepClone(a)
+            assert(a !== a2)
+            assert.isFalse('name' in a2)
+        })
     })
 })
